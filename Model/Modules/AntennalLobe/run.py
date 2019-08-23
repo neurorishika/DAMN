@@ -8,14 +8,17 @@ import pickle
 
 ###########SIMULATION FRAMEWORK############
 
-with open('model.pkl', 'rb') as fp:
-    model = pickle.load(fp)
+with open(sys.argv[2], 'rb') as fp:
+    locust = pickle.load(fp)
 
-sim_time = model['duration'] # total simulation time (in ms)
+with open(sys.argv[3], 'rb') as fp:
+    protocol = pickle.load(fp)
 
-sim_res = model['resolution'] # simulation resolution (in ms)
+sim_time = protocol['duration'] # total simulation time (in ms)
 
-n_n = model['n_n']             # number of neurons
+sim_res = protocol['resolution'] # simulation resolution (in ms)
+
+n_n = locust['AL_n']             # number of neurons
 
 p_n = int(0.75*n_n)                  # number of PNs
 l_n = int(0.25*n_n)                  # number of LNs
@@ -62,7 +65,7 @@ F_b = [0.0]*n_n                      # Fire threshold
 
 ## Defining Acetylcholine Synapse Connectivity ##
 
-ach_mat = model["achmat"] 
+ach_mat = locust["achmat"] 
 
 ## Defining Acetylcholine Synapse Parameters ##
 
@@ -77,7 +80,7 @@ E_ach = [0.0]*n_n                    # Ach Potential
 
 ## Defining GABAa Synapse Connectivity ##
 
-fgaba_mat = model["gabamat"] 
+fgaba_mat = locust["gabamat"] 
 
 ## Defining GABAa Synapse Parameters ##
     
@@ -86,12 +89,12 @@ alp_fgaba = [10.0]*n_syn_fgaba       # Alpha for fGABA Synapse
 bet_fgaba = [0.16]*n_syn_fgaba       # Beta for fGABA Synapse
 V0 = [-20.0]*n_n                     # Decay Potential
 sigma = [1.5]*n_n                    # Decay Time Constant
-g_fgaba = [0.8]*p_n+[0.8]*l_n        # fGABA Conductance
+g_fgaba = [0.9]*p_n+[1.3]*l_n        # fGABA Conductance
 E_fgaba = [-70.0]*n_n                # fGABA Potential
 
 ## Defining GABAslow Synapse Connectivity ##
 
-sgaba_mat = model["gabamat"] 
+sgaba_mat = locust["gabamat"] 
 
 ## Defining GABAslow Synapse Parameters ##
     
@@ -396,7 +399,7 @@ for n,i in enumerate(t_batch):
     print("Finished in",np.round(t1-t0,2),"secs...Saving...",end="")
     
     state_vector = state[-1,:]
-    np.save("batch"+str(int(sys.argv[1])+1)+"_part_"+str(n+1),state)
+    np.save("batch"+str(int(sys.argv[1])+1)+"_part_"+str(n+1),state[:,:120])
 
     state=None
     t2 = time.time()

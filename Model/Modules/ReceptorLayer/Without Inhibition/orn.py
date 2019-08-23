@@ -104,7 +104,7 @@ def generate_orn(duration,resolution,odorVec,odorStart,odorEnd): # Function to g
 orns = []
 
 for i in range(100):	# Generate 100 ORN types
-    time,trace = generate_orn(5000,0.01,odor,500,1500)
+    time,trace = generate_orn(10000,0.01,odor,500,2500)
     orns.append(trace)
 
 orns = np.array(orns*10) # Make 10 replicates of each ORN
@@ -134,7 +134,7 @@ ORN_AL = np.zeros((1000,120))
 p_PN = 0.05
 p_LN = 0.7
 
-ORN_AL[:,:90] = np.random.choice([0,1],size=(1000,90),p=[1-p_PN,p_PN])
+ORN_AL[:,:90] = np.array(list(np.random.choice([0,1],size=(100,90),p=[1-p_PN,p_PN]))*10)
 ORN_AL[:,90:] = np.random.choice([0,1],size=(1000,30),p=[1-p_LN,p_LN])
 
 # Generate Antennal Output
@@ -159,13 +159,13 @@ plt.ylabel('LN Number')
 plt.title('LN Response Profile')
 plt.savefig('ln_response.png')
 
-baseline = 2 # Baseline Current Input
+baseline = 1.5 # Baseline Current Input
 
-PN_current = 6 - baseline # Effective Current Input to PNs
-LN_current = 7 - baseline # Effective Current Input to LNs
+PN_current = 15 - baseline # Effective Current Input to PNs
+LN_current = 8 - baseline # Effective Current Input to LNs
 
-PN_scale = PN_current/ORN_Output[:90,50000:150000].mean() # PN Scaling Factor
-LN_scale = LN_current/ORN_Output[90:,50000:150000].mean() # LN Scaling Factor
+PN_scale = PN_current/ORN_Output[:90,50000:150000].max() # PN Scaling Factor
+LN_scale = LN_current/ORN_Output[90:,50000:150000].max() # LN Scaling Factor
 
 # Scale ORN Output to AL Input
 ORN_Output[:90,:] = baseline + (ORN_Output[:90,:] * PN_scale)

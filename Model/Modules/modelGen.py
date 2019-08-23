@@ -1,16 +1,12 @@
-from subprocess import call
 import numpy as np
 import pickle
-import time as t
-
-start = t.time()
 
 data = {}
-data['duration'] = 10000
+data['duration'] = 6000
 data['n_split'] = int(data['duration']/1000)
 data['resolution'] = 0.01
 data['n_n'] = 120
-data['PNPN'] = 0.1
+data['PNPN'] = 0.0
 data['PNLN'] = 0.5
 data['LNLN'] = 0.5
 data['LNPN'] = 0.5
@@ -35,16 +31,3 @@ data['gabamat'] = gaba_mat
 
 with open('model.pkl', 'wb') as fp:
     pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
-
-time = np.split(np.arange(0,data['duration'],data['resolution']),data['n_split'])
-
-for n,i in enumerate(time):
-    if n>0:
-        time[n] = np.append(i[0]-0.01,i)
-
-np.save("time",time)
-
-for i in range(data['n_split']):
-    call(['python','run.py',str(i)])
-
-print("Simulation Completed. Time taken: {:0.2f}".format(t.time()-start))

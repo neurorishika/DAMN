@@ -60,7 +60,7 @@ for i in range(30):
 data['ORN-AL'][:,p_n:] = np.array(lnc).T
 
 data['max_pn_current'] = 7
-data['max_ln_current'] = 4
+data['max_ln_current'] = 3
 data['random_noise_level'] = 0.05
 
 ### Within Layer 2 Inter-Connectivity ###

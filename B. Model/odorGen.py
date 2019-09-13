@@ -5,7 +5,7 @@ import polarTools as pt
 
 data = {}
 data['dim_odorspace'] = 2
-data['odor_concentration'] = 1
+data['odor_concentration'] = 0.33
 data['reference_odor'] = np.zeros(data['dim_odorspace'])
 data['reference_odor'][0] = data['odor_concentration']
 
@@ -16,14 +16,14 @@ np.random.seed(data['seed'])
 
 if data['odor_type'] == 'reference':
     data['odor_vector'] = data['reference_odor']
-    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])))
+    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
 elif data['odor_type'] == 'no_odor':
     data['odor_vector'] = np.zeros(data['dim_odorspace'])
     data['odor_angle'] = 0
 elif data['odor_type'] == 'random':
     
     data['odor_vector'] = pt.generateUniform(data['odor_concentration'],dimension=data['dim_odorspace'])
-    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])))
+    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
 elif data['dim_odorspace'] == 2:
     data['odor_type'] = int(data['odor_type'])
     if np.random.normal() > 0:
@@ -33,7 +33,7 @@ elif data['dim_odorspace'] == 2:
     c, s = np.cos(theta), np.sin(theta)
     R = np.array(((c,-s), (s, c)))
     data['odor_vector'] = np.matmul(R,data['reference_odor'].reshape(-1,1)).flatten()
-    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])))
+    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
 elif data['dim_odorspace'] == 3:
     data['odor_type'] = int(data['odor_type'])
     randVec = pt.generateUniform(1,dimension=data['dim_odorspace'])
@@ -47,7 +47,7 @@ elif data['dim_odorspace'] == 3:
     x = np.cos(phi)*sin
     y = np.sin(phi)*sin
     data['odor_vector'] = randVec * x + crossVec * y + data['reference_odor'] * z
-    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])))
+    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
     
 if data['odor_type'] == 'random':
     odor_path = easygui.filesavebox(msg='Save Odor File',title='Odor Browser',default='Conc_{}_Angle_{:0.2f}_Type_{}_Dimension_{}_seed_{}.odor'.format(data['odor_concentration'],data['odor_angle'],data['odor_type'],data['dim_odorspace'],data['seed']),filetypes=['*.odor'])

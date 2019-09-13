@@ -11,22 +11,24 @@ data = {}
 
 data['ORN_types'] = 100
 data['ORN_replicates'] = 10
-data['baseline'] = 0.02
-data['latency'] = (0,200)
-data['t_rise'] = (0,600)
-data['t_fall'] = (0,1200)
-data['tuning'] = (1,15)
+data['peak_firing'] = 20
+data['baseline_firing'] = 3
+data['rec_seeds'] = np.random.uniform(0,1000000,size=data['ORN_types'])
+data['latency'] = np.random.uniform(0,200,size=data['ORN_types'])
+data['t_rise'] = np.random.uniform(0,600,size=data['ORN_types'])
+data['t_fall'] = np.random.uniform(0,1200,size=data['ORN_types'])
+data['tuning'] = np.random.uniform(1,15,size=data['ORN_types'])
 data['a1'] = 15
 data['a2'] = 0.8
-data['inh_threshold'] = 60
-data['f_sharp'] = 0.5
-data['adaptation_extent'] = (0.1,1)
-data['t_adaptation'] = (0,1200)
+data['inh_threshold'] = 164
+data['f_sharp'] = np.random.choice([1,0],size=data['ORN_types'],p=[0.5,1-0.5])
+data['adaptation_extent'] = np.random.uniform(0.5,1,size=data['ORN_types'])
+data['t_adaptation'] = np.random.uniform(0,1200,size=data['ORN_types'])
 
 ### Antennal Lobe (Layer 2) ###
 
 data['AL_n'] = 120
-data['PNPN'] = 0.0
+data['PNPN'] = 0.5
 data['PNLN'] = 0.5
 data['LNLN'] = 0.5
 data['LNPN'] = 0.5
@@ -56,6 +58,10 @@ for i in range(30):
     np.random.shuffle(x)
     lnc.append(x)
 data['ORN-AL'][:,p_n:] = np.array(lnc).T
+
+data['max_pn_current'] = 7
+data['max_ln_current'] = 4
+data['random_noise_level'] = 0.05
 
 ### Within Layer 2 Inter-Connectivity ###
 

@@ -41,7 +41,7 @@ def generate_orn(orn_number,duration,resolution,odorVec,odorStart,odorEnd): # Fu
     if np.arccos(cosSim) < np.deg2rad(locust['inh_threshold']):	# Minimum Response Threshhold
         res_strength = (1-baseline)*sigmoid(odorMag*np.cos(np.arccos(cosSim)/2)**tuning)
     else:
-        res_strength = -baseline
+        res_strength = -baseline*odorMag
     
     if locust['f_sharp'][orn_number]:
         # Generate Sharp Trace
@@ -65,7 +65,7 @@ def generate_orn(orn_number,duration,resolution,odorVec,odorStart,odorEnd): # Fu
         peak_1 = rise[-1]
         adaptation_rate = locust['adaptation_extent'][orn_number] # Amplitude of Adaptation-related Decay
         t_adaptation = locust['t_adaptation'][orn_number] # Odor Adaptation Time
-        adaptation = np.arange(0,(int(odorEnd/resolution)-riseEndIndex)*resolution,resolution)
+        adaptation = np.arange(0,np.max([1,int(odorEnd/resolution)-riseEndIndex])*resolution,resolution)
         adaptation = (peak_1-(adaptation_rate*res_strength+baseline))*np.exp(-adaptation/t_adaptation)+(adaptation_rate*res_strength+baseline)
         adaptationStartIndex = riseEndIndex
         adaptationEndIndex = adaptationStartIndex+adaptation.shape[0]
@@ -95,21 +95,37 @@ print("Generation Complete. Plotting.")
 
 # Plot the ORN Response
 plt.figure()
-order = np.argsort(orns.max(axis=1))
-plt.imshow(orns[:,::100], aspect='auto')
+#order = np.argsort(orns[:100,:].max(axis=1))
+#np.save("order",order)
+plt.rcParams.update({'font.size': 22})
+order = np.load("order.npy")
+plt.imshow(orns[order[::-1],::100], aspect='auto')
+plt.clim(0,locust['peak_firing'])
 plt.colorbar()
-plt.xlabel('Time (in ms)')
-plt.ylabel('Neuron Number')
-plt.title('ORN Response')
-plt.savefig(odor_path.split('/')[-1]+"_"+'ORN Response.png')
+#plt.xlabel('Time (in ms)')
+#plt.ylabel('Neuron Number')
+#plt.title('ORN Response')
+plt.savefig(odor_path.split('/')[-1]+"_"+'ORN Response.png',transparent=True)
 
 # Plot the ORN Traces
-plt.figure()
-order = np.argsort(orns.mean(axis=1))
-plt.plot(orns[:,::100].T)
-plt.xlabel('Time (in ms)')
-plt.ylabel('Neuron Number')
-plt.title('ORN Traces')
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+fig = plt.figure()
+fig.patch.set_alpha(0.0)
+ax = fig.add_subplot(111, projection='3d')
+ax.patch.set_alpha(0.0)
+ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+order = np.argsort(orns[:100,:].mean(axis=1))
+color=cm.RdBu(np.arange(0,order[::-1].shape[0]))
+for n,i in enumerate(order[::-1]):
+    ax.plot(5*n*np.ones(orns[i,::100].shape),np.arange(0,orns[i,::100].shape[0]),orns[i,::100],alpha=1)
+#plt.ylabel('Time (in ms)')
+#plt.xlabel('Cell Type')
+#plt.title('ORN Traces')
+ax.grid(False)
+plt.axis('off')
 plt.savefig(odor_path.split('/')[-1]+"_"+'ORN Traces.png')
 
 # Plot EAD
@@ -117,10 +133,67 @@ plt.figure()
 plt.plot(orns.mean(axis=0))
 plt.xlabel('Time (in ms)')
 plt.ylabel('Mean Firing Rate')
-plt.title('EAG Response')
-plt.savefig(odor_path.split('/')[-1]+"_"+'EAG Response.png')
+#plt.title('EAG Response')
+plt.axis('off')
+plt.savefig(odor_path.split('/')[-1]+"_"+'EAG Response.png',transparent=True)
 
 # Save ORN Data
 np.save(odor_path.split('/')[-1]+"_"+"current_input",orns[:,::100])
+
+
+print("Generating Antennal Input...")
+
+ORN_Output = np.matmul(orns.T,locust['ORN-AL']).T
+
+p_n = int(0.75*locust['AL_n'])
+
+PN_scale = 1/ORN_Output[:p_n,:].max() # PN Scaling Factor
+LN_scale = 1/ORN_Output[p_n:,:].max() # LN Scaling Factor
+
+# Scale ORN Output to AL Input
+ORN_Output[:90,:] = (ORN_Output[:p_n,:] * PN_scale)
+ORN_Output[90:,:] = (ORN_Output[p_n:,:] * LN_scale)
+
+ORN_Output = ORN_Output + ORN_Output*locust['random_noise_level']*np.random.normal(size=ORN_Output.shape)
+
+print("Generation Complete")
+
+plt.rcParams.update({'font.size': 0})
+
+# Plot PN Current 
+plt.figure()
+plt.plot(ORN_Output[:p_n,::100].T,alpha=0.7)
+plt.gca().spines['right'].set_visible(False)
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['bottom'].set_visible(False)
+plt.ylim([0,1.5])
+#plt.xlabel('Time (in ms)')
+#plt.ylabel('PN Current Input')
+plt.savefig('PN Current.png',transparent=True)
+
+# Plot LN Current 
+plt.figure()
+plt.plot(ORN_Output[p_n:,::100].T,alpha=0.7)
+plt.gca().spines['right'].set_visible(False)
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['bottom'].set_visible(False)
+#plt.xlabel('Time (in ms)')
+#plt.ylabel('LN Current Input')
+plt.ylim([0,1.5])
+plt.savefig('LN Current.png',transparent=True)
+
+# Plot Overall Current
+plt.figure()
+order = np.concatenate((np.argsort(ORN_Output[:p_n,:].max(axis=1))[::-1],p_n+np.argsort(ORN_Output[p_n:,:].max(axis=1))[::-1]))
+plt.imshow(ORN_Output[order,::100], aspect='auto')
+plt.colorbar()
+plt.xlabel('Time (in ms)')
+plt.ylabel('Neuron Number')
+plt.savefig('AL Input Current.png',transparent=True)
+
+# Save Current Input
+np.save('current_input',ORN_Output)
+
+print("'Information has been transferred to the Antennal Lobe. Thank you for using our services.' - ORNs")
 
 

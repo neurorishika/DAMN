@@ -5,7 +5,7 @@ import polarTools as pt
 
 data = {}
 data['dim_odorspace'] = 2
-data['odor_concentration'] = 0.33
+data['odor_concentration'] = 0.8
 data['reference_odor'] = np.zeros(data['dim_odorspace'])
 data['reference_odor'][0] = data['odor_concentration']
 
@@ -16,7 +16,8 @@ np.random.seed(data['seed'])
 
 if data['odor_type'] == 'reference':
     data['odor_vector'] = data['reference_odor']
-    data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
+    print(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector']))
+    data['odor_angle'] = np.rad2deg(np.arccos(np.clip(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector']),-1,1)))
 elif data['odor_type'] == 'no_odor':
     data['odor_vector'] = np.zeros(data['dim_odorspace'])
     data['odor_angle'] = 0

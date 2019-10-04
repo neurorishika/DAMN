@@ -115,36 +115,45 @@ E_sgaba = [-95.0]*n_n                # sGABA Potential
 
 def K_prop(V):
     
-    T = 22
+    #T = 22
     
-    phi = 3.0**((T-36.0)/10)
+    #phi = 3.0**((T-36.0)/10)
     
-    V_ = V-(-50)
+    V_ = V-(-60)
     
-    alpha_n = 0.02*(15.0 - V_)/(tf.exp((15.0 - V_)/5.0) - 1.0)
-    beta_n = 0.5*tf.exp((10.0 - V_)/40.0)
+#    alpha_n = 0.02*(15.0 - V_)/(tf.exp((15.0 - V_)/5.0) - 1.0)
+#    beta_n = 0.5*tf.exp((10.0 - V_)/40.0)
+
+    alpha_n = 0.01*(V_+10)/(tf.exp((V_+10)/10.0) - 1.0)
+    beta_n = 0.125*tf.exp(V_/80.0)
     
-    t_n = 1.0/((alpha_n+beta_n)*phi)
+    t_n = 1.0/(alpha_n+beta_n)#/phi
     n_inf = alpha_n/(alpha_n+beta_n)
     
     return n_inf, t_n
 
 
 def Na_prop(V):
-    T = 22
+    #T = 22
     
-    phi = 3.0**((T-36)/10)
+    #phi = 3.0**((T-36)/10)
     
-    V_ = V-(-50)
+    V_ = V-(-60)
     
-    alpha_m = 0.32*(13.0 - V_)/(tf.exp((13.0 - V_)/4.0) - 1.0)
-    beta_m = 0.28*(V_ - 40.0)/(tf.exp((V_ - 40.0)/5.0) - 1.0)
+#    alpha_m = 0.32*(13.0 - V_)/(tf.exp((13.0 - V_)/4.0) - 1.0)
+#    beta_m = 0.28*(V_ - 40.0)/(tf.exp((V_ - 40.0)/5.0) - 1.0)
+#    
+#    alpha_h = 0.128*tf.exp((17.0 - V_)/18.0)
+#    beta_h = 4.0/(tf.exp((40.0 - V_)/5.0) + 1.0)
+
+    alpha_m = 0.1*(V_+25)/(tf.exp((V_+25)/10.0) - 1.0)
+    beta_m = 4.0*tf.exp(V/18.0)
     
-    alpha_h = 0.128*tf.exp((17.0 - V_)/18.0)
-    beta_h = 4.0/(tf.exp((40.0 - V_)/5.0) + 1.0)
+    alpha_h = 0.07*tf.exp(V_/20.0)
+    beta_h = 1.0/(tf.exp((V_+30)/10.0) + 1.0)
     
-    t_m = 1.0/((alpha_m+beta_m)*phi)
-    t_h = 1.0/((alpha_h+beta_h)*phi)
+    t_m = 1.0/(alpha_m+beta_m)#/phi
+    t_h = 1.0/(alpha_h+beta_h)#/phi
     
     m_inf = alpha_m/(alpha_m+beta_m)
     h_inf = alpha_h/(alpha_h+beta_h)
@@ -160,10 +169,11 @@ def A_prop(V):
     m_inf = 1/(1+tf.exp(-(V+60.0)/8.5))
     h_inf = 1/(1+tf.exp((V+78.0)/6.0))
     
-    tau_m = 1/(tf.exp((V+35.82)/19.69) + tf.exp(-(V+79.69)/12.7) + 0.37) / phi
+    tau_m = 0.27/(tf.exp((V + 35.8)/19.7) + tf.exp(-(V + 79.7)/12.7)) + 0.1
+    #1/(tf.exp((V+35.82)/19.69) + tf.exp(-(V+79.69)/12.7) + 0.37) / phi
     
-    t1 = 1/(tf.exp((V+46.05)/5.0) + tf.exp(-(V+238.4)/37.45)) / phi
-    t2 = (19.0/phi) * tf.ones(tf.shape(V),dtype=V.dtype)
+    t1 = 0.27*1/(tf.exp((V+46.05)/5.0) + tf.exp(-(V+238.4)/37.45)) #/ phi
+    t2 = tf.ones(tf.shape(V),dtype=V.dtype)*5.1 #*(19.0/phi)
     tau_h = tf.where(tf.less(V,-63.0),t1,t2)
     
     return m_inf, tau_m, h_inf, tau_h
@@ -174,22 +184,23 @@ def Ca_prop(V):
     m_inf = 1/(1+tf.exp(-(V+20.0)/6.5))
     h_inf = 1/(1+tf.exp((V+25.0)/12))
     
-    tau_m = 1.5
+    tau_m = 1 + (V + 30)*0.014#1.5
     tau_h = 0.3*tf.exp((V-40.0)/13.0) + 0.002*tf.exp((60.0-V)/29)
     
     return m_inf, tau_m, h_inf, tau_h
 
 def KCa_prop(Ca):
-    T = 26
+    #T = 26
     
-    phi = 2.3**((T-23.0)/10)
+    #phi = 2.3**((T-23.0)/10)
     
-    alpha = 0.01*Ca
-    beta = 0.02
+    #alpha = 0.01*Ca
+    #beta = 0.02
     
-    tau = 1/((alpha+beta)*phi)
+    #tau = 1/((alpha+beta)*phi)
     
-    return alpha*tau*phi, tau
+    #return alpha*tau*phi, tau
+    return Ca/(Ca+2), 100/(Ca+2)
 
 
 # NEURONAL CURRENTS
@@ -219,9 +230,9 @@ def I_Ca(V, m, h):
     return g_Ca * m**2 * h * (V - E_Ca)
 
 def I_KCa(V, m):
-    T = 26
-    phi = 2.3**((T-23.0)/10)
-    return g_KCa * m * phi * (V - E_KCa)
+    #T = 26
+    #phi = 2.3**((T-23.0)/10)
+    return g_KCa * m  * (V - E_KCa) #* phi
 
 # SYNAPTIC CURRENTS
 

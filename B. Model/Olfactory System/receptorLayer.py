@@ -41,7 +41,7 @@ def generate_orn(orn_number,duration,resolution,odorVec,odorStart,odorEnd): # Fu
     if np.arccos(cosSim) < np.deg2rad(locust['inh_threshold']):	# Minimum Response Threshhold
         res_strength = (1-baseline)*sigmoid(odorMag*np.cos(np.arccos(cosSim)/2)**tuning)
     else:
-        res_strength = -baseline
+        res_strength = -baseline*np.linalg.norm(odorVec)
     
     if locust['f_sharp'][orn_number]:
         # Generate Sharp Trace

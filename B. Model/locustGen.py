@@ -12,7 +12,7 @@ data = {}
 data['ORN_types'] = 100
 data['ORN_replicates'] = 10
 data['peak_firing'] = 20
-data['baseline_firing'] = 3
+data['baseline_firing'] = 4
 data['rec_seeds'] = np.random.uniform(0,1000000,size=data['ORN_types'])
 data['latency'] = np.random.uniform(0,200,size=data['ORN_types'])
 data['t_rise'] = np.random.uniform(0,600,size=data['ORN_types'])
@@ -59,8 +59,8 @@ for i in range(30):
     lnc.append(x)
 data['ORN-AL'][:,p_n:] = np.array(lnc).T
 
-data['max_pn_current'] = 7
-data['max_ln_current'] = 3
+data['max_pn_current'] = 0.66
+data['max_ln_current'] = 0.1
 data['random_noise_level'] = 0.05
 
 ### Within Layer 2 Inter-Connectivity ###
@@ -80,6 +80,6 @@ gaba_mat[p_n:,p_n:] = np.random.choice([0.,1.],size=(l_n,l_n),p=(1-data['LNLN'],
 np.fill_diagonal(gaba_mat,0.)
 data['gabamat'] = gaba_mat
 
-locust_path = easygui.filesavebox(msg='Save Locust File',title='Locust Browser',default='{}.locust'.format(dt.strftime("Locust_%d%m%Y_%H%M")),filetypes=['*.locust'])
+locust_path = easygui.filesavebox(msg='Save Locust File',title='Locust Browser',default='/home/iiser/Collins-Saptarshi 2019b/DAMN/A. Locusts/{}.locust'.format(dt.strftime("Locust_%d%m%Y_%H%M")),filetypes=['*.locust'])
 with open(locust_path, 'wb') as fp:
     pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)

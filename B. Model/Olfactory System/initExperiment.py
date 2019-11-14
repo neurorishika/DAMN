@@ -55,7 +55,7 @@ print("'Thank you for using our services.'-AL")
 call(['python','analyse.py'])
 
 # Generate Experiment Directory 
-folder = "/home/iiser/Collins-Saptarshi 2019b/DAMN/Model/Simulation Data/"+dt.strftime("%d%B%Y_%H%M")
+folder = "/home/iiser/Collins-Saptarshi 2019b/DAMN/B. Model/Simulation Data/"+dt.strftime("%d%B%Y_%H%M")
 if not os.path.exists(folder):
     os.makedirs(folder)
 
@@ -67,3 +67,4 @@ for f in filter(lambda v: (".pkl" in v) or (".npy" in v) or (".png" in v),os.lis
 copy(odor_path,folder)
 copy(protocol_path,folder)
 copy(locust_path,folder)
+copy(os.getcwd()+"/antennalLobe.py",folder)

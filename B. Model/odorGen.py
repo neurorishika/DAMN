@@ -5,7 +5,7 @@ import polarTools as pt
 
 data = {}
 data['dim_odorspace'] = 2
-data['odor_concentration'] = 0.8
+data['odor_concentration'] = 1
 data['reference_odor'] = np.zeros(data['dim_odorspace'])
 data['reference_odor'][0] = data['odor_concentration']
 
@@ -51,9 +51,9 @@ elif data['dim_odorspace'] == 3:
     data['odor_angle'] = np.rad2deg(np.arccos(np.dot(data['odor_vector'],data['reference_odor'])/np.linalg.norm(data['reference_odor'])/np.linalg.norm(data['odor_vector'])))
     
 if data['odor_type'] == 'random':
-    odor_path = easygui.filesavebox(msg='Save Odor File',title='Odor Browser',default='Conc_{}_Angle_{:0.2f}_Type_{}_Dimension_{}_seed_{}.odor'.format(data['odor_concentration'],data['odor_angle'],data['odor_type'],data['dim_odorspace'],data['seed']),filetypes=['*.odor'])
+    odor_path = easygui.filesavebox(msg='Save Odor File',title='Odor Browser',default='/home/iiser/Collins-Saptarshi 2019b/DAMN/A. Odors/Conc_{}_Angle_{:0.2f}_Type_{}_Dimension_{}_seed_{}.odor'.format(data['odor_concentration'],data['odor_angle'],data['odor_type'],data['dim_odorspace'],data['seed']),filetypes=['*.odor'])
 else:
-    odor_path = easygui.filesavebox(msg='Save Odor File',title='Odor Browser',default='Conc_{}_Angle_{:0.2f}_Type_{}_Dimension_{}.odor'.format(data['odor_concentration'],data['odor_angle'],data['odor_type'],data['dim_odorspace']),filetypes=['*.odor'])
+    odor_path = easygui.filesavebox(msg='Save Odor File',title='Odor Browser',default='/home/iiser/Collins-Saptarshi 2019b/DAMN/A. Odors/Conc_{}_Angle_{:0.2f}_Type_{}_Dimension_{}.odor'.format(data['odor_concentration'],data['odor_angle'],data['odor_type'],data['dim_odorspace']),filetypes=['*.odor'])
 
 with open(odor_path, 'wb') as fp:
     pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)

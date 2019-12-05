@@ -107,7 +107,7 @@ r4_sgaba = [0.06]*n_syn_sgaba       # r4 for sGABA Synapse
 V0_sgaba = [-20.0]*n_n               # Decay Potential
 sigma_sgaba = [1.5]*n_n              # Decay Time Constant
 # G_sgaba = [1.3]*p_n+[0.0]*l_n      # sGABA Conductance
-G_sgaba = [0.14]*p_n+[0.0]*l_n      # sGABA Conductance
+G_sgaba = [0.2]*p_n+[0.0]*l_n      # sGABA Conductance
 E_sgaba = [-95.0]*n_n                # sGABA Potential
 
 
@@ -360,7 +360,7 @@ current_input = np.load("current_input.npy")
 
 ## Scale ORN Output to AL Input
 PN_scale = 40/current_input[:p_n,:].max()/60 # PN Scaling Factor
-LN_scale = 4/current_input[p_n:,:].max()/40 # LN Scaling Factor
+LN_scale = 0.8*8/3/current_input[p_n:,:].max()/40 # LN Scaling Factor
 
 current_input[:p_n,:] = (current_input[:p_n,:] * PN_scale)
 current_input[p_n:,:] = (current_input[p_n:,:] * LN_scale)

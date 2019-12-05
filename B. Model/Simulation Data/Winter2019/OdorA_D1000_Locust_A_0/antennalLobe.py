@@ -107,7 +107,7 @@ r4_sgaba = [0.06]*n_syn_sgaba       # r4 for sGABA Synapse
 V0_sgaba = [-20.0]*n_n               # Decay Potential
 sigma_sgaba = [1.5]*n_n              # Decay Time Constant
 # G_sgaba = [1.3]*p_n+[0.0]*l_n      # sGABA Conductance
-G_sgaba = [0.14]*p_n+[0.0]*l_n      # sGABA Conductance
+G_sgaba = [0.2]*p_n+[0.0]*l_n      # sGABA Conductance
 E_sgaba = [-95.0]*n_n                # sGABA Potential
 
 
@@ -366,7 +366,7 @@ current_input[:p_n,:] = (current_input[:p_n,:] * PN_scale)
 current_input[p_n:,:] = (current_input[p_n:,:] * LN_scale)
 
 if sys.argv[1] == '0':
-    state_vector =  [-65]* p_n+[-50]* l_n + [0.5]* (n_n + 4*p_n + 3*l_n) + [2.4*(10**(-4))]*l_n + [0]*(n_syn_ach+n_syn_fgaba+2*n_syn_sgaba) + [-(sim_time+1)]*n_n
+    state_vector =  [-65]* p_n+[-50]* l_n + [0.2]* (n_n + 4*p_n + 3*l_n) + [2.4*(10**(-4))]*l_n + [0]*(n_syn_ach+n_syn_fgaba+2*n_syn_sgaba) + [-(sim_time+1)]*n_n
     state_vector = np.array(state_vector)
     state_vector = state_vector + 0.01*state_vector*np.random.normal(size=state_vector.shape)
     np.save("state_vector",state_vector)

@@ -1,6 +1,8 @@
 import numpy as np
 import pickle
 import easygui
+import polarTools as pt
+from sklearn.metrics.pairwise import cosine_similarity
 from datetime import datetime
 
 dt = datetime.now()
@@ -36,9 +38,23 @@ data['LNPN'] = 0.5
 l_n = int(0.25*data['AL_n'])
 p_n = int(0.75*data['AL_n'])
 
+### ORN Cell Type Similarity ###
+
+recs = []
+for i in range(data['ORN_types']):
+    recs.append(pt.generateUniform(1,2,seed=int(data['rec_seeds'][i])))
+
+mat = np.zeros((len(recs),len(recs)))
+for i in range(len(recs)):
+    for j in range(i+1):
+        mat[i,j] = cosine_similarity(recs[i].reshape(1, -1),recs[j].reshape(1, -1))
+        mat[j,i] = mat[i,j]
+
+mat=(mat+1)/2
+
 ### Layer 1 -> Layer 2 Connectivity ###
 
-data['ORN-AL'] = np.zeros((data['ORN_types']*data['ORN_replicates'],data['AL_n']))
+data['ORN-AL'] = np.zeros((data['ORN_types']*data['ORN_replicates'],120))
 data['f_ORN-PN'] = 0.05
 data['f_ORN-LN'] = 0.70
 
@@ -46,18 +62,42 @@ nc_PN = int(data['ORN_types']*data['f_ORN-PN'])
 nc_LN = int(data['ORN_types']*data['ORN_replicates']*data['f_ORN-LN'])
 
 pnc = []
-for i in range(90):
-    x = [1]*nc_PN+[0]*(100-nc_PN)
-    np.random.shuffle(x)
+for i in range(p_n):
+    prob = mat[np.random.randint(0,data['ORN_types']),:]
+    prob = prob/prob.sum()
+    indices = np.random.choice(np.arange(data['ORN_types']),size=nc_PN,p=prob)
+    x = np.zeros(data['ORN_types'])
+    x[indices]=1
     pnc.append(x)
-data['ORN-AL'][:,:p_n] = np.array(list(np.array(pnc).T)*10)
+data['ORN-AL'][:,:p_n] = np.array(list(np.array(pnc).T)*data['ORN_replicates'])
 
 lnc = []
-for i in range(30):
-    x = [1]*nc_LN+[0]*(1000-nc_LN)
+for i in range(l_n):
+    x = [1]*nc_LN+[0]*(data['ORN_types']*data['ORN_replicates']-nc_LN)
     np.random.shuffle(x)
     lnc.append(x)
 data['ORN-AL'][:,p_n:] = np.array(lnc).T
+
+#data['ORN-AL'] = np.zeros((data['ORN_types']*data['ORN_replicates'],data['AL_n']))
+#data['f_ORN-PN'] = 0.05
+#data['f_ORN-LN'] = 0.70
+
+#nc_PN = int(data['ORN_types']*data['f_ORN-PN'])
+#nc_LN = int(data['ORN_types']*data['ORN_replicates']*data['f_ORN-LN'])
+
+#pnc = []
+#for i in range(90):
+#    x = [1]*nc_PN+[0]*(100-nc_PN)
+#    np.random.shuffle(x)
+#    pnc.append(x)
+#data['ORN-AL'][:,:p_n] = np.array(list(np.array(pnc).T)*10)
+
+#lnc = []
+#for i in range(30):
+#    x = [1]*nc_LN+[0]*(1000-nc_LN)
+#    np.random.shuffle(x)
+#    lnc.append(x)
+#data['ORN-AL'][:,p_n:] = np.array(lnc).T
 
 data['max_pn_current'] = 0.66
 data['max_ln_current'] = 0.1

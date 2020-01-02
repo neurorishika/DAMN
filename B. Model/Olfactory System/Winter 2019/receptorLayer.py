@@ -23,14 +23,14 @@ with open(locust_path, 'rb') as fp:
 # Define ORN Response Generator
 def generate_orn(orn_number,duration,resolution,odorVec,odorStart,odorEnd): # Function to generate single ORN Trace
     
-    baseline = locust['baseline_firing']/locust['peak_firing'] # Baseline Firing Rate Ratio
+    baseline = locust['baseline_firing']*(1+0.2*np.random.normal())/locust['peak_firing'] # Baseline Firing Rate Ratio
     trace = baseline*np.ones(int(duration/resolution)) # Set Baseline activity for the Protocol Duration
     rec_field = pt.generateUniform(1,odor['dim_odorspace'],seed=int(locust['rec_seeds'][orn_number])) # Receptive Field of ORNs in Odor Space
     
     latency = locust['latency'][orn_number] # Latency of Response to Odor Presentation
     t_rise = locust['t_rise'][orn_number] # Time to Rise to Peak
     t_fall = locust['t_fall'][orn_number] # Response Decay Time
-    tuning = locust['tuning'][orn_number] # Odor Tuning-width / Sensitivity
+    tuning = locust['tuning'][orn_number]/2 # Odor Tuning-width / Sensitivity
     
     def sigmoid(x,a1=locust['a1'],a2=locust['a2']):	# Sigmoid for Response
         return 1/(1+np.exp(-a1*(x-a2)))
@@ -76,7 +76,7 @@ def generate_orn(orn_number,duration,resolution,odorVec,odorStart,odorEnd): # Fu
         fallStartIndex = adaptationEndIndex
         trace[fallStartIndex:] = fall
     
-    trace = trace*locust['peak_firing'] # Scale to Peak Firing Rate
+    trace = trace*locust['peak_firing']*5 # Scale to Peak Firing Rate
     
     return trace
 
@@ -123,49 +123,96 @@ plt.savefig('EAG Response.png')
 # Save ORN Data
 np.save('ORN Firing Data',orns[:,::100])
 
+
+def spike_generator(fr,resolution):
+    resolution = resolution/1000
+    spike = np.zeros(fr.shape)
+    w= 0.5
+    i = int(np.random.exponential(1/fr[0])/resolution)
+    spike[i] = 1
+    while True:
+        t_next = int(np.max([w/fr[i]+(1-w)*np.random.exponential(1/fr[i]),0.003])/resolution)
+        if i+t_next>=fr.shape[0]:
+            break
+        spike[i+t_next]= 1
+        i=i+t_next
+    return spike
+
+orns_spike = np.zeros(orns.shape)
+for i in range(orns.shape[0]):
+    orns_spike[i,:] = spike_generator(orns[i,:],0.01)
+    print('{}/{} ORN Spiking Completed'.format(i+1,locust['ORN_types']*locust['ORN_replicates']), end = '\r')
+print()
+
 # Generate Antennal Output
 
 print("Generating Antennal Input...")
 
-ORN_Output = np.matmul(orns.T,locust['ORN-AL']).T
+ORN_Output_s = np.matmul(orns_spike.T,locust['ORN-AL']).T
 
 p_n = int(0.75*locust['AL_n'])
 
-PN_scale = 1/ORN_Output[:p_n,:].max() # PN Scaling Factor
-LN_scale = 1/ORN_Output[p_n:,:].max() # LN Scaling Factor
+ORN_Output_current = np.zeros(ORN_Output_s.shape)
+for i in range(ORN_Output_s.shape[0]):
+    cfilter = 0.5*np.ones(30)
+    ORN_Output_current[i,:] = np.convolve(ORN_Output_s[i,:], cfilter,'same')
+    print('{}/{} Acetylcholine Concentration Integration Completed'.format(i+1,locust['AL_n']), end = '\r')
+print()
 
-# Scale ORN Output to AL Input
-ORN_Output[:90,:] = (ORN_Output[:p_n,:] * PN_scale)
-ORN_Output[90:,:] = (ORN_Output[p_n:,:] * LN_scale)
+plt.figure(figsize=(12,3))
+order = np.concatenate((np.argsort(ORN_Output_current[:p_n,:].mean(axis=1))[::-1],p_n+np.argsort(ORN_Output_current[p_n:,:].mean(axis=1))[::-1]))
+plt.imshow(ORN_Output_current[order,::100], aspect='auto')
+plt.colorbar()
+plt.xlabel('Time (in ms)')
+plt.ylabel('Neuron Number')
+plt.savefig('Acetylcholine Concentration.png')
 
-ORN_Output = ORN_Output + ORN_Output*locust['random_noise_level']*np.random.normal(size=ORN_Output.shape)
+ep=0.01
+a = 10.0
+b = 0.2
+
+def f(o,t):
+#    do = a*(1.0-o)*ORN_Output_current[:,int(t/ep)]/np.array([50]*90+[700]*30) - b*o
+    do = a*(1.0-o)*ORN_Output_current[:,int(t/ep)]/np.array([50]*90+[700]*30) - b*o
+    return do
+
+time = np.arange(ORN_Output_current.shape[1])*ep
+X = np.zeros(ORN_Output_current.shape)
+
+X[:,0]= 0
+
+for i in range(1,time.shape[0]):
+    X[:,i] = X[:,i-1] + ep*f(X[:,i-1],time[i-1])
+    if i%int(100/ep) == 0:
+        print('{}s/{}s Acetylcholine Receptor Integration Completed'.format(i*ep,time.shape[0]*ep), end = '\r')
+print()
 
 print("Generation Complete")
 
 # Plot PN Current 
 plt.figure()
-plt.plot(ORN_Output[:p_n,::100].T)
+plt.plot(X[:p_n,::100].T)
 plt.xlabel('Time (in ms)')
 plt.ylabel('PN Current Input')
 plt.savefig('PN Current.png')
 
 # Plot LN Current 
 plt.figure()
-plt.plot(ORN_Output[p_n:,::100].T)
+plt.plot(X[p_n:,::100].T)
 plt.xlabel('Time (in ms)')
 plt.ylabel('LN Current Input')
 plt.savefig('LN Current.png')
 
 # Plot Overall Current
 plt.figure()
-order = np.concatenate((np.argsort(ORN_Output[:p_n,:].max(axis=1))[::-1],p_n+np.argsort(ORN_Output[p_n:,:].max(axis=1))[::-1]))
-plt.imshow(ORN_Output[order,::100], aspect='auto')
+order = np.concatenate((np.argsort(X[:p_n,:].mean(axis=1))[::-1],p_n+np.argsort(X[p_n:,:].mean(axis=1))[::-1]))
+plt.imshow(X[order,::100], aspect='auto')
 plt.colorbar()
 plt.xlabel('Time (in ms)')
 plt.ylabel('Neuron Number')
 plt.savefig('AL Input Current.png')
 
 # Save Current Input
-np.save('current_input',ORN_Output)
+np.save('current_input',X)
 
 print("'Information has been transferred to the Antennal Lobe. Thank you for using our services.' - ORNs")

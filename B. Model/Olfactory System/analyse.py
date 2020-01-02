@@ -74,4 +74,17 @@ for i in range(int(0.25*overall_state.shape[1])):
     plt.plot(np.linspace(0,6,overall_state[::100,int(0.75*overall_state.shape[1])+i].shape[0]),i*(overall_state.max()-overall_state.min())+overall_state[::100,int(0.75*overall_state.shape[1])+i])
 plt.savefig("lns.png")
 
+plt.figure(figsize=(12,3))
+temp = overall_state.T[:90,::100]
+lol = np.logical_and(temp[:,1:]>0,temp[:,:-1]<0)
+events = []
+for i in range(90):
+    for j in range(4000):
+        if lol[i,j]:
+            events.append((i,j))
+events = np.array(events)
+plt.scatter(events[:,1],events[:,0],marker='s',s=1.0,c='k')
+plt.tight_layout()
+plt.savefig('Raster_PNs.png')
+
 np.save("AL_output",overall_state[::100,:])

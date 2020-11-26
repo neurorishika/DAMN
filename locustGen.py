@@ -30,7 +30,7 @@ data['t_adaptation'] = np.random.uniform(0,1200,size=data['ORN_types'])
 ### Antennal Lobe (Layer 2) ###
 
 data['AL_n'] = 120
-data['PNPN'] = 0.5
+data['PNPN'] = 0.0
 data['PNLN'] = 0.5
 data['LNLN'] = 0.5
 data['LNPN'] = 0.5
